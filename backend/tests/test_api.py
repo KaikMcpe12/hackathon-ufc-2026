@@ -50,3 +50,12 @@ def test_ingest_colunas_invalidas_400():
     r = client.post("/api/v1/etl/ingest",
                     files={"semana_1": ("x.csv", b"col_errada;outra\n1;2\n", "text/csv")})
     assert r.status_code == 400
+
+
+def test_revisar_cubagem_uc07():
+    ped = client.get("/api/v1/pedidos?eixo=1").json()["pedidos"][0]
+    cod = ped["itens"][0]["codigo"]
+    r = client.post(f"/api/v1/pedidos/{ped['pedido']}/revisar",
+                    json={"itens": [{"codigo": cod, "peso_kg": 10.0, "volume_m3": 0.05}]})
+    assert r.status_code == 200
+    assert r.json()["qualidade_cubagem"] == "ESTIMADA"

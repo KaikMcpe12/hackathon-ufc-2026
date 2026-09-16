@@ -83,14 +83,14 @@ export default function Planejamento() {
             title="Configurar carga"
             subtitle="Selecione os parâmetros para montar e otimizar sua carga."
           >
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <Field label="Eixo de entrega">
                 <Combobox options={eixoOpts} value={eixo} onChange={setEixo} ariaLabel="Eixo de entrega" />
               </Field>
               <Field label="Veículo">
                 <Combobox options={veicOpts} value={veiculo} onChange={setVeiculo} ariaLabel="Veículo" />
               </Field>
-              <Field label="Semana" hint="Vazio = todas as semanas do eixo (recomendado).">
+              <Field label="Semana">
                 <Combobox
                   options={[
                     { value: "", label: "Todas as semanas" },
@@ -101,16 +101,17 @@ export default function Planejamento() {
                   ariaLabel="Semana"
                 />
               </Field>
-              <label className="flex items-end gap-2 pb-2 text-sm text-neutral-600">
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 accent-brand-500"
-                  checked={incluir}
-                  onChange={(e) => setIncluir(e.target.checked)}
-                />
-                Incluir cubagem estimada (🟡)
-              </label>
             </div>
+            <label className="mt-3 flex items-center gap-2 text-sm text-neutral-600">
+              <input
+                type="checkbox"
+                className="h-4 w-4 accent-brand-500"
+                checked={incluir}
+                onChange={(e) => setIncluir(e.target.checked)}
+              />
+              Incluir pedidos com cubagem estimada (🟡)
+              <span className="text-xs text-muted">· semana vazia = todas do eixo</span>
+            </label>
             <Button
               className="mt-4"
               onClick={() => otimizar.mutate()}
@@ -148,6 +149,28 @@ export default function Planejamento() {
                   footer={["Total", moeda(t.valor_total), peso(t.peso_utilizado), volume(t.volume_utilizado)]}
                 />
               </SectionCard>
+
+              {plano!.pedidos_rejeitados.length > 0 && (
+                <SectionCard
+                  title="Pedidos fora da carga"
+                  subtitle="Elegíveis que o solver não incluiu — com o motivo de cada um."
+                >
+                  <div className="max-h-72 overflow-auto">
+                    <DataTable
+                      caption="Pedidos fora da carga"
+                      getKey={(r) => r.pedido}
+                      rows={plano!.pedidos_rejeitados}
+                      columns={[
+                        { key: "pedido", header: "Pedido", render: (r) => r.pedido },
+                        { key: "cidade", header: "Cidade", render: (r) => titulo(r.cidade) },
+                        { key: "peso", header: "Peso", align: "right", render: (r) => peso(r.peso_kg) },
+                        { key: "vol", header: "Volume", align: "right", render: (r) => volume(r.volume_m3) },
+                        { key: "motivo", header: "Motivo", render: (r) => <span className="text-neutral-600">{r.motivo}</span> },
+                      ]}
+                    />
+                  </div>
+                </SectionCard>
+              )}
             </div>
           )}
         </div>

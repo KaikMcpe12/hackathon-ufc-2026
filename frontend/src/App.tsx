@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { NavLink, Navigate, Route, Routes } from "react-router-dom";
+import { Footer } from "./components/ui/footer";
 import { Skeleton } from "./components/ui/skeleton";
 
 const Planejamento = lazy(() => import("./pages/Planejamento"));
@@ -22,15 +23,13 @@ export default function App() {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-30 flex h-[76px] items-center justify-between border-b border-line bg-white px-5 sm:px-8">
-        <div className="flex items-center gap-4">
-          <div className="text-[27px] font-black leading-none tracking-[-4px]">
-            N<span className="text-brand">L</span>
-          </div>
+        <div className="flex items-center gap-3">
+          <img src="/nobre-lar-logo.png" alt="Nobre Lar" className="h-10 w-10 rounded-lg object-contain" />
           <div>
             <div className="text-lg font-bold leading-tight">
               Nobre<span className="text-brand">LOG</span>
             </div>
-            <div className="text-xs text-muted">Inteligência Logística</div>
+            <div className="text-xs text-muted">Nobre Lar · Inteligência Logística</div>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -76,6 +75,8 @@ export default function App() {
           </Routes>
         </Suspense>
       </main>
+
+      <Footer />
     </div>
   );
 }

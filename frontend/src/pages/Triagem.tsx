@@ -120,6 +120,7 @@ export default function Triagem() {
           pedido={sel.pedido}
           cidade={sel.cidade}
           itens={sel.itens ?? []}
+          editavel={sel.qualidade_cubagem === "AUSENTE"}
         />
       )}
     </div>
