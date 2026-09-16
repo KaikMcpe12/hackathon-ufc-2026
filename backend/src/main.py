@@ -29,6 +29,8 @@ app.add_middleware(
 def health():
     st = state.get_state()
     return {"status": "ok", "version": config.VERSION,
+            "usa_seed": config.USE_SEED_DATA,
+            "tem_dados": state.tem_dados(),
             "pedidos_processados": len(st.pedidos_processados)}
 
 

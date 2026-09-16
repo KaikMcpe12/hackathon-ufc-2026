@@ -15,6 +15,7 @@ Os dois se acoplam por 2 variáveis: o front aponta para a URL do backend (`VITE
 | Variável | Valor a definir | Obrigatória? |
 |----------|-----------------|:---:|
 | `CORS_ORIGINS` | URL(s) do front na Vercel, ex.: `https://SEU-PROJETO.vercel.app` (várias separadas por vírgula) | **Sim** |
+| `USE_SEED_DATA` | `true` usa os CSVs seed (mock/demo, já na imagem) · `false` inicia vazio e exige upload | Não |
 | `LLM_PROVIDER` | `anthropic` (default) **ou** `nvidia` | Não |
 | `LLM_MODEL` | Anthropic: `claude-haiku-4-5` · NVIDIA: id do catálogo (ex.: `nvidia/llama-3.1-nemotron-ultra-253b-v1`) | Não |
 | `LLM_API_KEY` | A chave do LLM — Anthropic `sk-ant-…` **ou** NVIDIA `nvapi-…` | Só p/ ativar IA |
@@ -25,6 +26,12 @@ Os dois se acoplam por 2 variáveis: o front aponta para a URL do backend (`VITE
 | `LOTE_ANO` | `2026` | Não |
 | `PYTHONUNBUFFERED` | `1` | Não |
 | `PORT` / `DATA_DIR` | **NÃO definir** — `PORT` é injetado pelo Render; `DATA_DIR` já é `/app/data` | — |
+
+### Dados: seed (mock) vs upload, e ciclo de vida
+- Os **7 CSVs seed já vão na imagem** (`backend/data/`), então o Render **tem os dados** — o caso oficial roda no boot.
+- `USE_SEED_DATA=true` (default): usa esse seed como mock/demo. `false`: começa vazio e o usuário importa em **Importar** (`/etl/ingest`).
+- **Sobrescrita/acúmulo:** cada upload substitui **só os arquivos enviados** e **mantém os anteriores** (ex.: subir só `semana_4` preserva 1–3 e o ranking; um novo upload de `ranking` depois preserva a `semana_4` já enviada).
+- **Efêmero (ADR 0001):** os uploads vivem só enquanto o processo roda. **Reinício** do serviço volta ao seed (ou vazio). No Render Free, o *spin-down* também reseta. Para reter uploads/histórico entre reinícios → banco de dados ([`docs/arquitetura/adr/0010_persistencia_opcional.md`](docs/arquitetura/adr/0010_persistencia_opcional.md)).
 
 ### Vercel (frontend)
 | Variável | Valor a definir | Escopo |

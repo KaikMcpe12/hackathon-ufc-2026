@@ -44,6 +44,9 @@ class AppState:
 
 
 _state: AppState | None = None
+# Diretório de trabalho em runtime (temporário, efêmero). Guarda os CSVs seed +
+# uploads acumulados. Reinício do processo o recria (ADR 0001 — sem persistência em disco).
+_runtime_dir: Path | None = None
 
 
 def _from_artefatos(a: dict) -> AppState:
@@ -60,18 +63,34 @@ def _from_artefatos(a: dict) -> AppState:
     )
 
 
-def bootstrap(data_dir: Path | None = None) -> AppState:
-    """Carrega os CSVs seed e publica o estado. Chamado no startup do FastAPI.
+def _novo_runtime_dir(seed: Path | None) -> Path:
+    """Cria um dir de runtime e copia os CSVs do seed (se houver)."""
+    d = Path(tempfile.mkdtemp(prefix="nobrelog_state_"))
+    if seed and seed.exists():
+        for arq in seed.iterdir():
+            if arq.is_file() and arq.suffix == ".csv":
+                shutil.copy(arq, d / arq.name)
+    return d
 
-    Resiliente: se os dados estiverem ausentes ou um CSV presente estiver corrompido,
-    inicia com estado VAZIO (o usuário importa via /etl/ingest) em vez de derrubar o app.
+
+def bootstrap(data_dir: Path | None = None) -> AppState:
+    """Publica o estado inicial. Chamado no startup do FastAPI.
+
+    - `USE_SEED_DATA=true` (default): carrega os CSVs seed (mock/demo).
+    - `USE_SEED_DATA=false`: inicia VAZIO (produção — o usuário importa via /etl/ingest).
+    Resiliente: dados ausentes/corrompidos → estado vazio em vez de derrubar o app.
     """
-    global _state
+    global _state, _runtime_dir
+    if _runtime_dir is not None:
+        shutil.rmtree(_runtime_dir, ignore_errors=True)  # limpa runtime anterior
+    seed = (data_dir or config.DATA_DIR) if config.USE_SEED_DATA else None
     try:
-        _state = _from_artefatos(build(data_dir or config.DATA_DIR))
+        _runtime_dir = _novo_runtime_dir(seed)
+        _state = _from_artefatos(build(_runtime_dir))
     except Exception:
         logging.getLogger("nobrelog").exception("bootstrap falhou — iniciando com estado vazio")
-        _state = _from_artefatos(build(Path("/nonexistent_nobrelog_data")))
+        _runtime_dir = _novo_runtime_dir(None)
+        _state = _from_artefatos(build(_runtime_dir))
     return _state
 
 
@@ -79,6 +98,10 @@ def get_state() -> AppState:
     if _state is None:
         return bootstrap()
     return _state
+
+
+def tem_dados() -> bool:
+    return bool(_state and _state.stats.get("registros_processados", 0) > 0)
 
 
 def _valida_colunas(slot: str, raw: bytes) -> None:
@@ -94,25 +117,21 @@ def _valida_colunas(slot: str, raw: bytes) -> None:
 
 
 def reingest(files: dict[str, bytes]) -> AppState:
-    """Substitui em memória só os arquivos enviados; demais vêm do seed atual.
+    """Aplica um upload por cima do estado ATUAL, acumulando importações.
 
-    Não grava no diretório versionado — usa um dir temporário (ADR 0001/0002).
-    Reinício do servidor volta ao seed de `backend/data/`.
+    Só os slots enviados são sobrescritos; os demais (imports anteriores ou seed)
+    permanecem. Grava no dir de runtime efêmero — reinício do processo volta ao
+    seed/vazio (ADR 0001/0002). Para reter entre reinícios, ver ADR 0010.
     """
-    global _state
+    global _state, _runtime_dir
     for slot, raw in files.items():
         if slot not in _SLOT_ARQUIVO:
             raise ColunasInvalidas(f"slot desconhecido: {slot}")
         _valida_colunas(slot, raw)
 
-    tmp = Path(tempfile.mkdtemp(prefix="nobrelog_ingest_"))
-    try:
-        for arq in config.DATA_DIR.iterdir():  # base = seed atual
-            if arq.is_file():
-                shutil.copy(arq, tmp / arq.name)
-        for slot, raw in files.items():  # sobrepõe os enviados
-            (tmp / _SLOT_ARQUIVO[slot]).write_bytes(raw)
-        _state = _from_artefatos(build(tmp))
-    finally:
-        shutil.rmtree(tmp, ignore_errors=True)
+    if _runtime_dir is None:  # garante dir de runtime (respeitando o toggle de seed)
+        _runtime_dir = _novo_runtime_dir(config.DATA_DIR if config.USE_SEED_DATA else None)
+    for slot, raw in files.items():  # sobrepõe só os slots enviados; retém o resto
+        (_runtime_dir / _SLOT_ARQUIVO[slot]).write_bytes(raw)
+    _state = _from_artefatos(build(_runtime_dir))
     return _state

@@ -7,6 +7,10 @@ from pathlib import Path
 # Raiz de dados (CSVs seed). Sobrescrevível por env para testes/deploy.
 DATA_DIR = Path(os.getenv("DATA_DIR", str(Path(__file__).resolve().parent.parent / "data")))
 
+# Usar os CSVs seed como dados iniciais (mock/demo). Se false, inicia VAZIO
+# (produção: o usuário importa via /etl/ingest).
+USE_SEED_DATA = os.getenv("USE_SEED_DATA", "true").strip().lower() in ("1", "true", "yes", "sim")
+
 # CORS: origens liberadas para o frontend (Vite dev + Vercel em produção).
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
 
