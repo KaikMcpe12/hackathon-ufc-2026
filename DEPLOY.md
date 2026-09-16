@@ -9,6 +9,42 @@ Os dois se acoplam por 2 variáveis: o front aponta para a URL do backend (`VITE
 
 ---
 
+## 0. Variáveis de ambiente — valores a definir
+
+### Render (backend)
+| Variável | Valor a definir | Obrigatória? |
+|----------|-----------------|:---:|
+| `CORS_ORIGINS` | URL(s) do front na Vercel, ex.: `https://SEU-PROJETO.vercel.app` (várias separadas por vírgula) | **Sim** |
+| `LLM_PROVIDER` | `anthropic` (default) **ou** `nvidia` | Não |
+| `LLM_MODEL` | Anthropic: `claude-haiku-4-5` · NVIDIA: id do catálogo (ex.: `nvidia/llama-3.1-nemotron-ultra-253b-v1`) | Não |
+| `LLM_API_KEY` | A chave do LLM — Anthropic `sk-ant-…` **ou** NVIDIA `nvapi-…` | Só p/ ativar IA |
+| `ANTHROPIC_API_KEY` | Alternativa à `LLM_API_KEY` (o código cai para ela) | Não |
+| `LLM_BASE_URL` | Só p/ NVIDIA: `https://integrate.api.nvidia.com/v1` (já é o default) | Não |
+| `OCUPACAO_MINIMA` | `0.6` (limiar do alerta de frete mínimo) | Não |
+| `SOLVER_TIME_LIMIT` | `30` | Não |
+| `LOTE_ANO` | `2026` | Não |
+| `PYTHONUNBUFFERED` | `1` | Não |
+| `PORT` / `DATA_DIR` | **NÃO definir** — `PORT` é injetado pelo Render; `DATA_DIR` já é `/app/data` | — |
+
+### Vercel (frontend)
+| Variável | Valor a definir | Escopo |
+|----------|-----------------|--------|
+| `VITE_API_URL` | URL do backend no Render, ex.: `https://nobrelog-backend.onrender.com` (sem barra no fim) | Production (e Preview) |
+
+> `VITE_API_URL` é **build-time** (o Vite embute no bundle) — após mudar, **redeploy**.
+
+### Usar NVIDIA NIM (nemotron) em vez de Anthropic
+O NVIDIA NIM é **compatível com a API da OpenAI**, não com a da Anthropic — por isso não basta trocar a chave. Configure:
+```
+LLM_PROVIDER=nvidia
+LLM_API_KEY=nvapi-…                 # (ou coloque em ANTHROPIC_API_KEY — o código reusa)
+LLM_BASE_URL=https://integrate.api.nvidia.com/v1
+LLM_MODEL=<id do modelo no catálogo NVIDIA>   # confirme em https://build.nvidia.com
+```
+> ⚠️ Confirme o **id exato** do modelo em https://build.nvidia.com (ex.: `nvidia/llama-3.1-nemotron-ultra-253b-v1`). O nome que você citou (`nemotron-3-ultra-550b-a55b`) precisa ser validado no catálogo — use o slug exato que a NVIDIA lista lá.
+
+---
+
 ## 1. Backend no Render (Docker)
 
 Arquivos já prontos no repo: [`backend/Dockerfile`](backend/Dockerfile), [`backend/requirements.txt`](backend/requirements.txt), [`render.yaml`](render.yaml) (Blueprint).

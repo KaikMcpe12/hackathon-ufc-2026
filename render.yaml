@@ -13,10 +13,22 @@ services:
       # Domínio do frontend na Vercel (ex.: https://nobrelog.vercel.app). Defina no dashboard.
       - key: CORS_ORIGINS
         sync: false
-      # Opcional — ativa /insight. Sem a chave, /insight responde 503 (fallback).
-      - key: ANTHROPIC_API_KEY
-        sync: false
+      # Camada LLM (opcional — sem chave, /insight responde 503 fallback).
+      # Provedor: "anthropic" ou "nvidia" (NVIDIA NIM, compatível com OpenAI).
+      - key: LLM_PROVIDER
+        value: anthropic
       - key: LLM_MODEL
         value: claude-haiku-4-5
+      # Chave do LLM (Anthropic sk-ant-… OU NVIDIA nvapi-…). Defina no dashboard.
+      - key: LLM_API_KEY
+        sync: false
+      # Compat: se preferir, use ANTHROPIC_API_KEY (o código cai para ela).
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      # Só p/ NVIDIA NIM / OpenAI-compatível:
+      - key: LLM_BASE_URL
+        value: https://integrate.api.nvidia.com/v1
+      - key: OCUPACAO_MINIMA
+        value: "0.6"
       - key: PYTHONUNBUFFERED
         value: "1"
