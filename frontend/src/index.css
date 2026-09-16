@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --ring: #ffc400;
+  }
+  html { -webkit-font-smoothing: antialiased; }
+  body {
+    @apply bg-surface text-ink font-sans;
+  }
+  /* Foco visível consistente (acessibilidade) */
+  :where(button, a, input, select, [role="button"], [tabindex]):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+}
+
+@layer utilities {
+  .tnum { font-variant-numeric: tabular-nums; }
+  .skeleton {
+    @apply relative overflow-hidden bg-line/60 rounded-lg;
+  }
+  .skeleton::after {
+    content: "";
+    @apply absolute inset-0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+    transform: translateX(-100%);
+    animation: shimmer 1.4s infinite;
+  }
+}

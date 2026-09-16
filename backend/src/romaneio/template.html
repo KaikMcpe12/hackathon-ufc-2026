@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<style>
+  :root {
+    --y: #ffc400; --ink: #11141a; --muted: #667085; --line: #e4e7ec;
+    --bg: #f3f5f7; --green: #18b96b;
+  }
+  @page { size: A4; margin: 1.1cm 1.1cm 1.4cm; }
+  * { box-sizing: border-box; font-family: "Helvetica", "Arial", sans-serif; }
+  body { margin: 0; color: var(--ink); font-size: 10.5px; }
+
+  /* Hero */
+  .hero { border-radius: 14px; padding: 18px 22px; color: #fff;
+          background: linear-gradient(96deg, #0b0c0e, #25282e);
+          display: flex; justify-content: space-between; align-items: center; }
+  .hero h1 { margin: 0; font-size: 22px; letter-spacing: -.5px; }
+  .hero h1 span { color: var(--y); }
+  .hero .sub { color: #d9dde4; font-size: 10.5px; margin-top: 3px; }
+  .status { background: #ddf8e9; color: #067a43; border-radius: 999px;
+            padding: 5px 12px; font-weight: 800; font-size: 10px; white-space: nowrap; }
+
+  /* Metadados */
+  .romhead { display: flex; border: 1px solid var(--line); border-radius: 12px;
+             margin-top: 12px; overflow: hidden; }
+  .romitem { flex: 1; padding: 10px 14px; border-right: 1px solid var(--line); }
+  .romitem:last-child { border-right: 0; }
+  .romitem small { color: var(--muted); font-size: 9px; text-transform: uppercase;
+                   letter-spacing: .3px; }
+  .romitem strong { display: block; margin-top: 3px; font-size: 12px; }
+  .garg { display: inline-block; background: #fff4c8; color: #7a5b00;
+          border-radius: 999px; padding: 2px 9px; font-weight: 800; font-size: 10px; }
+
+  /* Métricas */
+  .metrics { display: flex; gap: 10px; margin-top: 12px; }
+  .metric { flex: 1; border: 1px solid var(--line); border-radius: 12px; padding: 12px 13px; }
+  .metric small { color: var(--muted); font-size: 9px; }
+  .metric .num { font-size: 17px; font-weight: 800; margin-top: 5px;
+                 font-variant-numeric: tabular-nums; }
+  .metric .cap { color: var(--muted); font-size: 9px; margin-top: 1px; }
+  .progress { height: 8px; background: #edf0f4; border-radius: 99px; margin-top: 9px; overflow: hidden; }
+  .progress i { display: block; height: 100%; background: var(--y); }
+  .pct { text-align: right; font-size: 9.5px; font-weight: 800; margin-top: 4px; }
+
+  /* Corpo em 2 colunas */
+  .body { display: flex; gap: 12px; margin-top: 12px; }
+  .col-main { flex: 2.1; }
+  .col-side { flex: 1; }
+  .card { border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+  .card h2 { margin: 0 0 8px; font-size: 12px; }
+  .card h2::before { content: ""; display: inline-block; width: 3px; height: 12px;
+                     background: var(--y); margin-right: 7px; vertical-align: -1px; border-radius: 2px; }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead th { background: #f2f4f7; text-align: left; font-size: 9px; text-transform: uppercase;
+             color: var(--muted); padding: 7px 8px; }
+  td { padding: 7px 8px; border-bottom: 1px solid #eef1f4; font-variant-numeric: tabular-nums; }
+  .num-r { text-align: right; }
+  tfoot td { font-weight: 800; background: #eef1f4; border: 0; }
+
+  /* Stepper de rota (vertical) */
+  .stepper { list-style: none; margin: 0; padding: 0; }
+  .stepper li { display: flex; align-items: center; gap: 9px; padding: 5px 0; }
+  .dot { width: 24px; height: 24px; border-radius: 50%; background: #e4e7ec;
+         color: var(--ink); font-weight: 800; font-size: 10px; text-align: center; line-height: 24px; }
+  .dot.on { background: var(--y); }
+  .stepper .cidade { font-weight: 700; }
+  .stepper .qtd { margin-left: auto; color: var(--muted); font-size: 10px; }
+  .soft { background: #f6f7f9; border: 1px solid #eceff2; border-radius: 10px;
+          padding: 11px; margin-top: 10px; }
+  .soft strong { font-size: 12px; }
+  .notice { background: #fff7dd; border: 1px solid #ffe08a; border-radius: 10px;
+            padding: 10px; margin-top: 10px; font-size: 9.5px; color: #5d4a00; line-height: 1.45; }
+
+  /* Assinaturas */
+  .signs { display: flex; gap: 22px; margin-top: 20px; }
+  .signs .s { flex: 1; padding-top: 20px; border-top: 1px solid #aeb5bd;
+              text-align: center; font-size: 9.5px; color: var(--muted); }
+  footer { position: fixed; bottom: -1cm; left: 0; right: 0; text-align: center;
+           color: #9aa2ad; font-size: 8px; }
+</style>
+</head>
+<body>
+  <div class="hero">
+    <div>
+      <h1>Plano de Carga · <span>Romaneio</span></h1>
+      <div class="sub">Grupo Nobre Lar · Eixo {{ p.eixo.id }} · {{ p.eixo.nome }}</div>
+    </div>
+    <div class="status">✓ CARGA VÁLIDA · {{ p.violacoes }} VIOLAÇÕES</div>
+  </div>
+
+  <div class="romhead">
+    <div class="romitem"><small>Veículo</small><strong>{{ p.veiculo.nome }}</strong></div>
+    <div class="romitem"><small>Eixo</small><strong>{{ p.eixo.id }}</strong></div>
+    <div class="romitem"><small>Data da carga</small><strong>{{ data_carga }}</strong></div>
+    <div class="romitem"><small>Coordenador</small><strong>{{ coordenador }}</strong></div>
+    <div class="romitem"><small>Gargalo</small><strong><span class="garg">{{ p.gargalo }}</span></strong></div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <small>Peso utilizado</small>
+      <div class="num">{{ p.totais.peso_utilizado|br(3) }} kg</div>
+      <div class="cap">de {{ p.totais.peso_capacidade|br(0) }} kg</div>
+      <div class="progress"><i style="width: {{ (p.totais.ocupacao_peso*100)|round(1) }}%"></i></div>
+      <div class="pct">{{ (p.totais.ocupacao_peso*100)|br(1) }}%</div>
+    </div>
+    <div class="metric">
+      <small>Volume utilizado</small>
+      <div class="num">{{ p.totais.volume_utilizado|br(4) }} m³</div>
+      <div class="cap">de {{ p.totais.volume_capacidade|br(4) }} m³</div>
+      <div class="progress"><i style="width: {{ (p.totais.ocupacao_volume*100)|round(1) }}%"></i></div>
+      <div class="pct">{{ (p.totais.ocupacao_volume*100)|br(1) }}%</div>
+    </div>
+    <div class="metric">
+      <small>Valor da carga</small>
+      <div class="num">R$ {{ p.totais.valor_total|br(2) }}</div>
+      <div class="cap">receita total do plano</div>
+    </div>
+    <div class="metric">
+      <small>Pedidos</small>
+      <div class="num">{{ p.totais.quantidade_pedidos }}</div>
+      <div class="cap">de {{ p.pedidos_selecionados|length + p.pedidos_rejeitados|length }} elegíveis</div>
+    </div>
+  </div>
+
+  <div class="body">
+    <div class="col-main">
+      <div class="card">
+        <h2>Pedidos da carga</h2>
+        <table>
+          <thead><tr>
+            <th>Ordem</th><th>Pedido</th><th>Cidade</th>
+            <th class="num-r">Valor (R$)</th><th class="num-r">Peso (kg)</th><th class="num-r">Volume (m³)</th>
+          </tr></thead>
+          <tbody>
+            {% for r in p.pedidos_selecionados %}
+            <tr>
+              <td>{{ r.ordem }}</td><td>{{ r.pedido }}</td><td>{{ r.cidade|title }}</td>
+              <td class="num-r">{{ r.valor|br(2) }}</td>
+              <td class="num-r">{{ r.peso_kg|br(3) }}</td>
+              <td class="num-r">{{ r.volume_m3|br(5) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot><tr>
+            <td colspan="3">TOTAL</td>
+            <td class="num-r">{{ p.totais.valor_total|br(2) }}</td>
+            <td class="num-r">{{ p.totais.peso_utilizado|br(3) }}</td>
+            <td class="num-r">{{ p.totais.volume_utilizado|br(4) }}</td>
+          </tr></tfoot>
+        </table>
+      </div>
+
+      <div class="signs">
+        {% for role in ["Conferente", "Motorista", "Expedição"] %}
+        <div class="s">{{ role }} — nome e assinatura</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="col-side">
+      <div class="card">
+        <h2>Sequência de descarga</h2>
+        <ul class="stepper">
+          {% for s in p.sequencia_descarga %}
+          <li>
+            <span class="dot {{ 'on' if s.qtd_pedidos else '' }}">{{ s.ordem }}</span>
+            <span class="cidade">{{ s.cidade|title }}</span>
+            <span class="qtd">{{ s.qtd_pedidos ~ ' pedido(s)' if s.qtd_pedidos else 'Nenhum' }}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        <div class="soft">
+          <strong>Carregamento (LIFO)</strong>
+          <div style="margin-top:5px; color:#475467;">{{ p.orientacao_carregamento.descricao }}</div>
+        </div>
+        <div class="notice">
+          ⓘ Confira os volumes e identifique cada pedido antes da saída. Números conforme o solver — não recalcular.
+        </div>
+      </div>
+
+      {% set o = p.organizacao_carga %}
+      <div class="card" style="margin-top: 12px;">
+        <h2>Organização da carga</h2>
+        {% if o.abaixo_minimo %}<div class="notice">⚠ {{ o.alerta_minimo }}</div>{% endif %}
+        <div class="soft">
+          <strong>Perfil: {{ o.perfil }}</strong>
+          <div style="margin-top: 4px;">Densidade {{ o.densidade_carga|br(1) }} kg/m³
+            <span style="color:#667085">(ideal do veículo {{ o.densidade_veiculo|br(1) }})</span></div>
+          <div style="margin-top: 4px; color:#475467;">{{ o.sugestao }}</div>
+        </div>
+        <ul class="stepper" style="margin-top: 8px;">
+          {% for z in o.zonas %}
+          <li>
+            <span class="dot on">{{ z.ordem }}</span>
+            <span class="cidade">{{ z.cidade|title }}</span>
+            <span class="qtd">{{ z.posicao }} · {{ z.densidade|br(0) }} kg/m³</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <footer>NobreLOG Optimizer v{{ versao }} · gerado em {{ p.gerado_em }} · números conforme solver (não recalculados)</footer>
+</body>
+</html>

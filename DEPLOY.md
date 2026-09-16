@@ -1,0 +1,78 @@
+# Deploy — NobreLOG Optimizer
+
+Arquitetura de deploy (ver [`docs/arquitetura/adr/0009_deploy_stateful.md`](docs/arquitetura/adr/0009_deploy_stateful.md)):
+
+- **Backend** → **Render** (Docker, host stateful — WeasyPrint precisa de libs nativas; serverless não serve).
+- **Frontend** → **Vercel** (estático Vite).
+
+Os dois se acoplam por 2 variáveis: o front aponta para a URL do backend (`VITE_API_URL`) e o backend libera o domínio do front no CORS (`CORS_ORIGINS`).
+
+---
+
+## 1. Backend no Render (Docker)
+
+Arquivos já prontos no repo: [`backend/Dockerfile`](backend/Dockerfile), [`backend/requirements.txt`](backend/requirements.txt), [`render.yaml`](render.yaml) (Blueprint).
+
+### Opção A — Blueprint (recomendado)
+1. No Render: **New → Blueprint** e conecte este repositório.
+2. O Render lê o `render.yaml` e cria o serviço `nobrelog-backend` (Docker, plano free, health check em `/health`).
+3. Em **Environment**, defina:
+   - `CORS_ORIGINS` = URL do front na Vercel (ex.: `https://nobrelog.vercel.app`). Pode listar várias separadas por vírgula.
+   - `ANTHROPIC_API_KEY` = (opcional) ativa `/insight`. Sem ela, `/insight` responde 503 (fallback).
+4. Deploy. A URL final será algo como `https://nobrelog-backend.onrender.com`.
+
+### Opção B — sem Blueprint
+1. **New → Web Service** → conecte o repo.
+2. **Runtime:** Docker · **Dockerfile Path:** `backend/Dockerfile` · **Docker Context:** `backend`.
+3. **Health Check Path:** `/health`.
+4. Adicione as env vars do passo 3 acima.
+
+> O `$PORT` é injetado pelo Render; o container já faz `uvicorn --host 0.0.0.0 --port $PORT`.
+> Os CSVs seed estão embutidos na imagem (`backend/data/`), então o caso oficial roda no boot.
+> **Atenção (plano free):** o serviço "dorme" após inatividade e o estado in-memory (uploads via `/etl/ingest`) é perdido ao dormir/reiniciar, voltando ao seed. Para reter uploads/histórico, ver [`docs/arquitetura/adr/0010_persistencia_opcional.md`](docs/arquitetura/adr/0010_persistencia_opcional.md).
+
+### Testar a imagem localmente (opcional)
+```bash
+docker build -t nobrelog-backend ./backend
+docker run --rm -p 8000:8000 -e CORS_ORIGINS="http://localhost:5173" nobrelog-backend
+curl localhost:8000/health
+```
+
+---
+
+## 2. Frontend na Vercel (Vite)
+
+Arquivo pronto: [`frontend/vercel.json`](frontend/vercel.json) (framework Vite + rewrites de SPA).
+
+1. Na Vercel: **Add New → Project** → importe o repo.
+2. **Root Directory:** `frontend` (importante — o projeto front está em subpasta).
+3. Framework **Vite** é detectado; build `npm run build`, output `dist` (já no `vercel.json`).
+4. **Environment Variables:**
+   - `VITE_API_URL` = URL do backend no Render (ex.: `https://nobrelog-backend.onrender.com`).
+   - ⚠️ É **build-time** (Vite embute no bundle) — após mudar, faça **redeploy**.
+5. Deploy. A URL final (ex.: `https://nobrelog.vercel.app`) deve ser colocada no `CORS_ORIGINS` do backend (passo 1.3).
+
+### `rewrites` (SPA)
+O `vercel.json` já redireciona todas as rotas para `index.html`, para o roteamento client-side do React Router funcionar em refresh/deep-link.
+
+---
+
+## 3. Ordem de deploy (evita CORS quebrado)
+
+1. Suba o **backend no Render** → anote a URL.
+2. Suba o **frontend na Vercel** com `VITE_API_URL` = URL do backend → anote a URL.
+3. Volte ao Render e ajuste `CORS_ORIGINS` = URL da Vercel → redeploy do backend.
+4. Teste o fluxo: abrir o front, otimizar Eixo 4 + ACELLO, exportar o PDF.
+
+---
+
+## 4. Checklist de verificação pós-deploy
+- [ ] `GET https://<backend>/health` → 200.
+- [ ] Front carrega eixos/veículos (sem erro de CORS no console).
+- [ ] `POST /otimizar` (Eixo 4 + ACELLO 815) reproduz 7 pedidos / 4.797,335 kg / PESO.
+- [ ] Exportar PDF do romaneio funciona.
+- [ ] (Se configurada a chave) bloco de IA gera insight; senão, recolhe silenciosamente.
+
+## Notas
+- Alternativas de host stateful além do Render: Railway, Fly.io, ou qualquer VPS com Docker — o `Dockerfile` é o mesmo.
+- Não comitar `.env` (já no `.gitignore`). Use os `.env.example` como referência.

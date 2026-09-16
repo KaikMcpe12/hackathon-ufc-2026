@@ -60,22 +60,29 @@ Extração: usar `pandas.read_csv(skiprows=..., nrows=...)` ou parse manual por 
 
 Parse: remover `kg`, converter BR.
 
-## 4. `DADOS_DE_ENTREGAS__-_Vendas_Faturamento_Entregas.csv`
+## 4. `DADOS_DE_ENTREGAS__-_Vendas_Faturamento_Entregas.csv` (a.k.a. `Vendas_Faturamento_Entregas.csv`)
 
-Separador: `,` · 715 linhas com 24 colunas (planilha operacional completa). No MVP, **não usar como fonte primária de pedidos** — os `Pedidos_Filtrados_Semana_N.csv` já vêm sanitizados dessa base.
+Separador: `,` · ~3.236+ pedidos únicos · 24 colunas (planilha operacional completa).
+**MVP (atual):** não usado como fonte primária — `Pedidos_Filtrados_Semana_N.csv` já vêm sanitizados.
+**Pós-MVP ([[prd/10-pos-mvp-melhorias]]#21-integracao-vendas_faturamentoentregascsv-rf-novo):** integração obrigatória para validação real de status entrega/faturamento.
 
-Uso possível: auditoria e verificação cruzada. Colunas relevantes:
+| Coluna original         | Tipo real observado         | Regra pós-MVP                                                   |
+|-------------------------|-----------------------------|-----------------------------------------------------------------|
+| `Pedido`                | `3236`, `L12608278`         | Chave de join com semanas (normalizar: remover prefixo `L` se houver). |
+| `Situacao`              | `FATURADO`, `CANCELADO`     | Uppercase. Filtro: só `FATURADO` entra no solver.               |
+| `Situacao_CSV_Entrega`  | `ENTREGUE`, `PENDENTE`, `EM ROTA`, `TRANSFERIDO`, `RETIRADA` | Uppercase. Filtro: `IN (ENTREGUE, PENDENTE, EM ROTA)` entra. `RETIRADA`/`TRANSFERIDO` excluem. |
+| `Data`                  | `01/08/26` (dd/mm/yy)       | Parse `dayfirst=True`, ano 2 dígitos → 2000+.                   |
+| `Cidade`                | `CRATEUS`, `IPAPORANGA`     | Uppercase, strip, remover acentos. Cruzar com `Pedidos_Filtrados.Cidade` → log `CIDADE_DIVERGENTE` se divergir. |
+| `Logistica`             | `NORMAL`, `URGENTE`, `RETIRADA` | Uppercase. Informativo.                                         |
+| `Valor_Pedido`          | `"R$ 412,00"` (string BR)   | Auditoria: conferir com `Pedidos_Filtrados.Valor_Pedido`.       |
+| `Veiculo`               | `HR / BONGO`, `ACELLO 815`  | Histórico de qual veículo fez a entrega (não é ficha técnica).  |
 
-| Coluna              | Uso                                            |
-|---------------------|------------------------------------------------|
-| `PEDIDO`            | Chave cruzada com semanas.                     |
-| `SITUACAO`          | Auditoria (deveria bater com `Situacao_CSV_Entrega`). |
-| `CIDADE`            | Auditoria.                                     |
-| `VALOR DO PEDIDO`   | Auditoria (formato `"R$ 412,00"`).             |
-| `DATA`              | Auditoria (`01/08/26`).                        |
-| `VEÍCULO`           | Histórico (não é ficha técnica).               |
+**Deduplicação:** Mesmo `Pedido` pode aparecer múltiplas vezes (histórico de status). Regra: **último status por `Data`** (mais recente vence). Log de conflitos se status final divergir entre linhas.
 
-Muitas colunas vazias/inconsistentes — não confiar cegamente.
+**Inconsistências conhecidas (adicionais ao MVP):**
+- `Data` com ano 2 dígitos ambíguo → assumir 2000+ (lote 2026)
+- `Situacao_CSV_Entrega` vazio em alguns registros → tratar como `PENDENTE` com warning no log
+- Colunas extras vazias (~10) → ignorar
 
 ## Inconsistências conhecidas
 

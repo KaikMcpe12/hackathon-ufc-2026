@@ -1,0 +1,22 @@
+# Render Blueprint — backend stateful com Docker (ver docs/arquitetura/adr/0009_deploy_stateful.md).
+# Deploy: New → Blueprint → aponte para este repo. O front vai na Vercel (ver frontend/vercel.json).
+services:
+  - type: web
+    name: nobrelog-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      # Domínio do frontend na Vercel (ex.: https://nobrelog.vercel.app). Defina no dashboard.
+      - key: CORS_ORIGINS
+        sync: false
+      # Opcional — ativa /insight. Sem a chave, /insight responde 503 (fallback).
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: LLM_MODEL
+        value: claude-haiku-4-5
+      - key: PYTHONUNBUFFERED
+        value: "1"
