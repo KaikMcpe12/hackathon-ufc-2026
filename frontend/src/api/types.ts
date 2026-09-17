@@ -147,3 +147,18 @@ export interface Insight {
   modelo: string;
   duracao_ms: number;
 }
+
+export interface MultiPlano {
+  planos: { eixo_id: number; veiculo: string; plano: PlanoDeCarga }[];
+  resumo_global: {
+    ocupacao_media_peso: number;
+    ocupacao_media_volume: number;
+    valor_total: number;
+    veiculos_usados: number;
+    veiculos_ociosos: number;
+    eixos_atendidos: number[];
+    eixos_nao_atendidos: number[];
+  };
+  designacao: string;
+  gerado_em: string;
+}

@@ -3,6 +3,7 @@ from datetime import date
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
+from ...optim.multi_eixo import otimizar_multi
 from ...optim.planejador import CenarioInvalido, otimizar_cenario
 from ...state import get_state
 
@@ -21,6 +22,13 @@ class CompararRequest(BaseModel):
     eixo: int = Field(ge=1, le=5)
     semana: int | None = Field(default=None, ge=1, le=4)
     veiculos: list[str]
+    data_carga: date | None = None
+
+
+class MultiEixoRequest(BaseModel):
+    semana: int | None = Field(default=None, ge=1, le=4)
+    veiculos: list[str] | None = None  # None = toda a frota selecionável (pode repetir)
+    incluir_estimadas: bool = True
     data_carga: date | None = None
 
 
@@ -53,3 +61,12 @@ def comparar(req: CompararRequest):
     validos = [c for c in cenarios if c["resultado"]["violacoes"] == 0]
     recomendado = max(validos or cenarios, key=score)["veiculo"]
     return {"cenarios": cenarios, "recomendado": recomendado}
+
+
+@router.post("/otimizar/multi-eixo")
+def multi_eixo(req: MultiEixoRequest):
+    st = get_state()
+    try:
+        return otimizar_multi(st, req.semana, req.veiculos, req.incluir_estimadas, req.data_carga)
+    except CenarioInvalido as e:
+        raise HTTPException(400, detail=str(e))

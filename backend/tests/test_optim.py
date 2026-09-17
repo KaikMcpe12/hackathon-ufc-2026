@@ -1,5 +1,6 @@
 import pytest
 
+from src.optim.multi_eixo import otimizar_multi
 from src.optim.planejador import CenarioInvalido, otimizar_cenario
 
 
@@ -63,3 +64,19 @@ def test_ocupacao_minima_flag(state):
     # caso oficial ocupa ~99,94% no gargalo → não está abaixo do mínimo
     assert o["abaixo_minimo"] is False
     assert o["ocupacao_gargalo"] >= o["ocupacao_minima"]
+
+
+def test_multi_eixo(state):
+    r = otimizar_multi(state, veiculos=["ACELLO 815", "HR / BONGO"])
+    assert 1 <= len(r["planos"]) <= 2          # 2 veículos → no máx. 2 eixos
+    for p in r["planos"]:
+        assert p["plano"]["violacoes"] == 0    # nenhum plano viola capacidade
+    rg = r["resumo_global"]
+    assert rg["veiculos_usados"] + rg["veiculos_ociosos"] == 2
+
+
+def test_multi_eixo_determinismo(state):
+    a = otimizar_multi(state, veiculos=["ACELLO 815", "HR / BONGO"])
+    b = otimizar_multi(state, veiculos=["ACELLO 815", "HR / BONGO"])
+    assert [(p["eixo_id"], p["veiculo"]) for p in a["planos"]] == \
+           [(p["eixo_id"], p["veiculo"]) for p in b["planos"]]

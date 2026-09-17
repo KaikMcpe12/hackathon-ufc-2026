@@ -4,6 +4,7 @@ import { Footer } from "./components/ui/footer";
 import { Skeleton } from "./components/ui/skeleton";
 
 const Planejamento = lazy(() => import("./pages/Planejamento"));
+const MultiEixo = lazy(() => import("./pages/MultiEixo"));
 const Romaneio = lazy(() => import("./pages/Romaneio"));
 const Simulacao = lazy(() => import("./pages/Simulacao"));
 const Qualidade = lazy(() => import("./pages/Qualidade"));
@@ -12,6 +13,7 @@ const Importar = lazy(() => import("./pages/Importar"));
 
 const NAV = [
   ["/", "Planejamento"],
+  ["/multi", "Multi-eixo"],
   ["/triagem", "Pedidos elegíveis"],
   ["/qualidade", "Dados & cubagem"],
   ["/simulacao", "Simulação"],
@@ -66,6 +68,7 @@ export default function App() {
         <Suspense fallback={<Skeleton className="h-64 w-full" />}>
           <Routes>
             <Route path="/" element={<Planejamento />} />
+            <Route path="/multi" element={<MultiEixo />} />
             <Route path="/romaneio" element={<Romaneio />} />
             <Route path="/simulacao" element={<Simulacao />} />
             <Route path="/qualidade" element={<Qualidade />} />
