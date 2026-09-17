@@ -122,6 +122,11 @@ export interface Pedido {
   qualidade_cubagem: "COMPLETA" | "ESTIMADA" | "AUSENTE";
   elegivel: boolean;
   motivo_exclusao: string | null;
+  status_faturamento: string | null;
+  status_entrega: string | null;
+  entregue: boolean | null;
+  veiculo_historico: string | null;
+  divergencia_cidade: boolean | null;
   itens: ItemPedido[];
 }
 

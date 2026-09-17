@@ -49,6 +49,16 @@ def carregar_ranking(data_dir: Path) -> pd.DataFrame:
     return df
 
 
+def carregar_vendas(data_dir: Path) -> pd.DataFrame:
+    """Vendas/Faturamento/Entregas (sep ','). Auditoria/enriquecimento — opcional."""
+    p = data_dir / "vendas_faturamento.csv"
+    if not p.exists():
+        return pd.DataFrame()
+    df = pd.read_csv(p, sep=",", dtype=str, encoding="utf-8-sig", keep_default_na=False)
+    df.columns = [c.strip() for c in df.columns]
+    return df
+
+
 def carregar_referencias_sinteticas(data_dir: Path) -> pd.DataFrame:
     """Estimativas sintéticas do protótipo (opcional). Vazio se ausente."""
     p = data_dir / "referencias_sinteticas.csv"

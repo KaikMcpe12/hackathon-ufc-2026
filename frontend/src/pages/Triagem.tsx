@@ -3,7 +3,7 @@ import { Filter, Search } from "lucide-react";
 import { useState } from "react";
 import { api } from "../api/client";
 import type { MotivoExclusao, Pedido } from "../api/types";
-import { StatusBadge } from "../components/ui/badge";
+import { Badge, StatusBadge } from "../components/ui/badge";
 import { SectionCard } from "../components/ui/card";
 import { Combobox } from "../components/ui/combobox";
 import { DataTable } from "../components/ui/data-table";
@@ -87,6 +87,19 @@ export default function Triagem() {
                   { key: "peso", header: "Peso", align: "right", render: (p) => peso(p.peso_kg) },
                   { key: "vol", header: "Volume", align: "right", render: (p) => volume(p.volume_m3) },
                   { key: "selo", header: "Cubagem", render: (p) => <StatusBadge>{p.qualidade_cubagem}</StatusBadge> },
+                  {
+                    key: "entrega",
+                    header: "Entrega",
+                    render: (p) =>
+                      p.status_entrega ? (
+                        <span className="flex items-center gap-1">
+                          <Badge variant={p.status_entrega === "ENTREGUE" ? "green" : "gray"}>{p.status_entrega}</Badge>
+                          {p.divergencia_cidade && <span title="Cidade divergente do faturamento">⚠️</span>}
+                        </span>
+                      ) : (
+                        <span className="text-muted">—</span>
+                      ),
+                  },
                 ]}
               />
             )}

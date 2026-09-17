@@ -35,3 +35,12 @@ def test_motivos_exclusao_soma(state):
 def test_eixo4_cidades(state):
     e4 = state.eixos.set_index("id").loc[4]
     assert e4["cidades"][:3] == ["IPAPORANGA", "PORANGA", "ARARENDA"]
+
+
+def test_enriquecimento_vendas_faturamento(state):
+    """Vendas/Faturamento enriquece sem alterar o pipeline (688→93→81 intacto)."""
+    assert state.stats["elegiveis"] == 81  # gate/pipeline preservado
+    proc = state.pedidos_processados
+    # a maioria dos elegíveis casa com o CSV de vendas (status preenchido)
+    assert proc["status_faturamento"].notna().sum() >= 70
+    assert "divergencias_cidade" in state.stats

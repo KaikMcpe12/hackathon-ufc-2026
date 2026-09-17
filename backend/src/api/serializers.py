@@ -43,6 +43,12 @@ def pedido_to_dict(row: pd.Series | dict) -> dict:
         "qualidade_cubagem": r.get("qualidade_cubagem"),
         "elegivel": True,
         "motivo_exclusao": None,
+        # enriquecimento Vendas/Faturamento (pode ser None se sem cruzamento)
+        "status_faturamento": r.get("status_faturamento"),
+        "status_entrega": r.get("status_entrega"),
+        "entregue": r.get("entregue"),
+        "veiculo_historico": r.get("veiculo_historico"),
+        "divergencia_cidade": bool(r.get("divergencia_cidade")) if r.get("divergencia_cidade") is not None else None,
         "itens": [item_to_dict(i) for i in itens],
     }
 
