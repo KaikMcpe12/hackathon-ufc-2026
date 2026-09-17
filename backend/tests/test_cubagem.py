@@ -1,9 +1,12 @@
 import math
+from pathlib import Path
 
 import pandas as pd
 
 from src.cubagem.conversor import m2_por_caixa
 from src.cubagem.parser import parse_itens_resumo
+
+ORACULO = Path(__file__).parent / "oraculo"
 
 
 def test_parse_item_resumo():
@@ -42,7 +45,7 @@ def test_ausencia_nao_vira_zero(state):
 
 
 def test_cubagem_bate_prototipo(state):
-    proto = pd.read_csv("tests/oraculo/pedidos_solver_prototipo.csv", sep=";",
+    proto = pd.read_csv(ORACULO / "pedidos_solver_prototipo.csv", sep=";",
                         dtype=str, encoding="utf-8-sig")
     proto["Pedido"] = proto["Pedido"].str.strip()
     ref = proto.set_index("Pedido")["Peso_Total_kg"].astype(float)
