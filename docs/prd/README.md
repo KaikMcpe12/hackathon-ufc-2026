@@ -19,6 +19,7 @@
 | [[prd/09-reingestao-testes]] | Re-ingestão, Testes & Aceite | 02–06 | upload + suíte pytest + gate |
 | [[prd/10-pos-mvp-melhorias]] | Pós-MVP: Vendas_Faturamento + Multi-eixo + Render | 09 | integração dado bruto, MKP heurístico, deploy stateful |
 | [[prd/11-melhorias-ux]] | Melhorias de UX/UI, A11y, PDF e Front-end | 08 | redesign shadcn/ui, hero, componentes ricos, PDF (P0 já feito) |
+| [[prd/12-persistencia-banco]] | Persistência em banco (branch separada) | 10 | cadastro (form + CSV), histórico, upsert — futuro |
 
 > **Deploy pronto (arquivos):** [`render.yaml`](../../render.yaml) · [`backend/Dockerfile`](../../backend/Dockerfile) · [`frontend/vercel.json`](../../frontend/vercel.json) · guia [`DEPLOY.md`](../../DEPLOY.md).
 

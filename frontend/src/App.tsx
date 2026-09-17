@@ -1,5 +1,6 @@
+import { motion } from "framer-motion";
 import { lazy, Suspense } from "react";
-import { NavLink, Navigate, Route, Routes } from "react-router-dom";
+import { NavLink, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Footer } from "./components/ui/footer";
 import { Skeleton } from "./components/ui/skeleton";
 
@@ -22,6 +23,7 @@ const NAV = [
 ];
 
 export default function App() {
+  const location = useLocation();
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-30 flex h-[76px] items-center justify-between border-b border-line bg-white px-5 sm:px-8">
@@ -66,16 +68,23 @@ export default function App() {
 
       <main className="mx-auto max-w-content px-4 py-5 sm:px-6">
         <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-          <Routes>
-            <Route path="/" element={<Planejamento />} />
-            <Route path="/multi" element={<MultiEixo />} />
-            <Route path="/romaneio" element={<Romaneio />} />
-            <Route path="/simulacao" element={<Simulacao />} />
-            <Route path="/qualidade" element={<Qualidade />} />
-            <Route path="/triagem" element={<Triagem />} />
-            <Route path="/importar" element={<Importar />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+          >
+            <Routes location={location}>
+              <Route path="/" element={<Planejamento />} />
+              <Route path="/multi" element={<MultiEixo />} />
+              <Route path="/romaneio" element={<Romaneio />} />
+              <Route path="/simulacao" element={<Simulacao />} />
+              <Route path="/qualidade" element={<Qualidade />} />
+              <Route path="/triagem" element={<Triagem />} />
+              <Route path="/importar" element={<Importar />} />
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </motion.div>
         </Suspense>
       </main>
 
