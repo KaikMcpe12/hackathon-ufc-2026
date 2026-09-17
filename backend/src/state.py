@@ -47,6 +47,7 @@ _state: AppState | None = None
 # Diretório de trabalho em runtime (temporário, efêmero). Guarda os CSVs seed +
 # uploads acumulados. Reinício do processo o recria (ADR 0001 — sem persistência em disco).
 _runtime_dir: Path | None = None
+_repo = None  # SqliteRepo quando STATE_BACKEND=sqlite (PRD-12)
 
 
 def _from_artefatos(a: dict) -> AppState:
@@ -80,9 +81,21 @@ def bootstrap(data_dir: Path | None = None) -> AppState:
     - `USE_SEED_DATA=false`: inicia VAZIO (produção — o usuário importa via /etl/ingest).
     Resiliente: dados ausentes/corrompidos → estado vazio em vez de derrubar o app.
     """
-    global _state, _runtime_dir
+    global _state, _runtime_dir, _repo
     if _runtime_dir is not None:
         shutil.rmtree(_runtime_dir, ignore_errors=True)  # limpa runtime anterior
+
+    if config.STATE_BACKEND == "sqlite":  # persistência opt-in (PRD-12)
+        try:
+            from .db.repository import SqliteRepo
+            _repo = SqliteRepo(config.DB_PATH)
+            if config.USE_SEED_DATA:
+                _repo.seed_from_csv(data_dir or config.DATA_DIR)
+            _rebuild_from_repo(data_dir or config.DATA_DIR)
+            return _state
+        except Exception:
+            logging.getLogger("nobrelog").exception("bootstrap sqlite falhou — caindo p/ memória")
+
     seed = (data_dir or config.DATA_DIR) if config.USE_SEED_DATA else None
     try:
         _runtime_dir = _novo_runtime_dir(seed)
@@ -92,6 +105,42 @@ def bootstrap(data_dir: Path | None = None) -> AppState:
         _runtime_dir = _novo_runtime_dir(None)
         _state = _from_artefatos(build(_runtime_dir))
     return _state
+
+
+def _rebuild_from_repo(seed_dir: Path | None = None) -> AppState:
+    """Re-materializa o banco em CSVs e reconstrói o estado (após seed/upsert)."""
+    global _state, _runtime_dir
+    if _runtime_dir is not None:
+        shutil.rmtree(_runtime_dir, ignore_errors=True)
+    _runtime_dir = _novo_runtime_dir(None)
+    _repo.materialize(_runtime_dir, seed_dir or config.DATA_DIR)
+    _state = _from_artefatos(build(_runtime_dir))
+    return _state
+
+
+def cadastrar_produtos(rows: list[dict]) -> dict:
+    """Upsert de produtos (form/CSV) + reprocessa o pipeline. Requer STATE_BACKEND=sqlite."""
+    if _repo is None:
+        raise RuntimeError("Cadastro exige STATE_BACKEND=sqlite.")
+    rel = _repo.upsert_produtos(rows)
+    _rebuild_from_repo()
+    return rel
+
+
+def cadastrar_pedidos(rows: list[dict]) -> dict:
+    if _repo is None:
+        raise RuntimeError("Cadastro exige STATE_BACKEND=sqlite.")
+    rel = _repo.upsert_pedidos(rows)
+    _rebuild_from_repo()
+    return rel
+
+
+def repo_ativo() -> bool:
+    return _repo is not None
+
+
+def contagem_db() -> dict:
+    return _repo.contagem() if _repo is not None else {}
 
 
 def get_state() -> AppState:

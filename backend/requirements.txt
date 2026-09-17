@@ -8,3 +8,4 @@ jinja2
 weasyprint>=61
 anthropic
 openai
+sqlalchemy>=2.0

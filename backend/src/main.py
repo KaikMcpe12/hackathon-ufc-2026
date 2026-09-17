@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from . import config, state
-from .api.routes import etl, llm, metadados, otimizar, pedidos, qualidade, romaneio
+from .api.routes import cadastro, etl, llm, metadados, otimizar, pedidos, qualidade, romaneio
 
 
 @asynccontextmanager
@@ -30,10 +30,11 @@ def health():
     st = state.get_state()
     return {"status": "ok", "version": config.VERSION,
             "usa_seed": config.USE_SEED_DATA,
+            "state_backend": config.STATE_BACKEND,
             "tem_dados": state.tem_dados(),
             "pedidos_processados": len(st.pedidos_processados)}
 
 
 for r in (metadados.router, pedidos.router, qualidade.router, otimizar.router,
-          romaneio.router, llm.router, etl.router):
+          romaneio.router, llm.router, etl.router, cadastro.router):
     app.include_router(r, prefix="/api/v1")

@@ -15,5 +15,8 @@ frontend/dist/
 .env
 *.local
 
+# Banco (SQLite — PRD-12)
+*.db
+
 # SO
 .DS_Store

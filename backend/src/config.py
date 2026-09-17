@@ -11,6 +11,10 @@ DATA_DIR = Path(os.getenv("DATA_DIR", str(Path(__file__).resolve().parent.parent
 # (produção: o usuário importa via /etl/ingest).
 USE_SEED_DATA = os.getenv("USE_SEED_DATA", "true").strip().lower() in ("1", "true", "yes", "sim")
 
+# Backend de estado: "memory" (default, in-memory) ou "sqlite" (persistente — PRD-12).
+STATE_BACKEND = os.getenv("STATE_BACKEND", "memory").strip().lower()
+DB_PATH = Path(os.getenv("DB_PATH", str(DATA_DIR.parent / "nobrelog.db")))
+
 # CORS: origens liberadas para o frontend (Vite dev + Vercel em produção).
 CORS_ORIGINS = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
 

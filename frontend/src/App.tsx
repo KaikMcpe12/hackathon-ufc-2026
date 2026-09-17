@@ -6,6 +6,7 @@ import { Skeleton } from "./components/ui/skeleton";
 
 const Planejamento = lazy(() => import("./pages/Planejamento"));
 const MultiEixo = lazy(() => import("./pages/MultiEixo"));
+const Cadastro = lazy(() => import("./pages/Cadastro"));
 const Romaneio = lazy(() => import("./pages/Romaneio"));
 const Simulacao = lazy(() => import("./pages/Simulacao"));
 const Qualidade = lazy(() => import("./pages/Qualidade"));
@@ -19,6 +20,7 @@ const NAV = [
   ["/qualidade", "Dados & cubagem"],
   ["/simulacao", "Simulação"],
   ["/romaneio", "Plano de carga"],
+  ["/cadastro", "Cadastro"],
   ["/importar", "Importar"],
 ];
 
@@ -81,6 +83,7 @@ export default function App() {
               <Route path="/simulacao" element={<Simulacao />} />
               <Route path="/qualidade" element={<Qualidade />} />
               <Route path="/triagem" element={<Triagem />} />
+              <Route path="/cadastro" element={<Cadastro />} />
               <Route path="/importar" element={<Importar />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
