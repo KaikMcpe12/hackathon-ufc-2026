@@ -18,6 +18,7 @@ export function Combobox({
   placeholder = "Selecione",
   searchPlaceholder = "Buscar…",
   ariaLabel,
+  id,
 }: {
   options: Option[];
   value: string;
@@ -25,6 +26,7 @@ export function Combobox({
   placeholder?: string;
   searchPlaceholder?: string;
   ariaLabel?: string;
+  id?: string;
 }) {
   const [open, setOpen] = useState(false);
   const sel = options.find((o) => o.value === value);
@@ -33,6 +35,7 @@ export function Combobox({
       <Popover.Trigger asChild>
         <button
           type="button"
+          id={id}
           aria-label={ariaLabel}
           className="flex h-11 w-full items-center justify-between rounded-lg border border-neutral-300 bg-white px-3 text-left text-sm transition-colors hover:border-neutral-400"
         >
