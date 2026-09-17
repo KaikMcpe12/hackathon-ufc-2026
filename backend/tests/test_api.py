@@ -1,8 +1,11 @@
+from pathlib import Path
+
 from fastapi.testclient import TestClient
 
 from src.main import app
 
 client = TestClient(app)
+DATA = Path(__file__).resolve().parent.parent / "data"
 
 
 def test_health():
@@ -38,7 +41,7 @@ def test_insight_sem_chave_503():
 
 
 def test_ingest_substitui_semana():
-    with open("data/pedidos_semana_4.csv", "rb") as f:
+    with open(DATA / "pedidos_semana_4.csv", "rb") as f:
         r = client.post("/api/v1/etl/ingest",
                         files={"semana_4": ("s4.csv", f, "text/csv")})
     assert r.status_code == 200
